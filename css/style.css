@@ -1,0 +1,222 @@
+:root {
+  --color-bg: #f5fafe;
+  --color-fg: #14212f;
+  --color-muted: #5b7186;
+  --color-border: #cfe6f7;
+  --color-surface: #e6f2fb;
+  --color-surface-2: #ffffff;
+  --color-primary: #0072c6;
+  --color-primary-fg: #ffffff;
+  --color-danger: #a5290b;
+  --color-danger-bg: #fdeceb;
+  --color-warning-bg: #fff6e0;
+  --color-warning-fg: #6b4a00;
+  --color-success-bg: #e7f6ec;
+  --color-success-fg: #175c33;
+  --shadow-card: 0 1px 2px rgba(0, 71, 133, 0.06), 0 4px 14px rgba(0, 71, 133, 0.07);
+  --shadow-field: 0 1px 2px rgba(0, 71, 133, 0.1);
+  --focus-ring: 3px solid #0072c6aa;
+  font-size: 16px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #0a1420;
+    --color-fg: #e7f1fa;
+    --color-muted: #8fa9c0;
+    --color-border: #1c3348;
+    --color-surface: #122641;
+    --color-surface-2: #182f4d;
+    --color-primary: #55acEA;
+    --color-primary-fg: #052033;
+    --color-danger: #ff8a75;
+    --color-danger-bg: #3a1512;
+    --color-warning-bg: #3a2f0c;
+    --color-warning-fg: #f0cf72;
+    --color-success-bg: #0f3320;
+    --color-success-fg: #7fe0a6;
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 14px rgba(0, 0, 0, 0.25);
+    --shadow-field: 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+#app { min-height: 100vh; display: flex; flex-direction: column; }
+.callback-shell { padding: 2rem 1rem; text-align: center; }
+
+a { color: var(--color-primary); }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+
+/* ヘッダーは塗り（薄い水色）で本文エリアと区分けする（罫線は使わない）。
+   ボタン等の操作要素と違い、ここは装飾的な区切りなので、公式感が出過ぎないよう
+   ズバリのプライマリブルーではなく薄い水色を使う。 */
+.app-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.85rem 1rem; background: var(--color-surface); color: var(--color-fg);
+  gap: 0.5rem; flex-wrap: wrap;
+}
+.app-title { margin: 0; line-height: 1.1; }
+.app-title .app-title-main { display: block; font-weight: 800; font-size: 1.7rem; }
+.app-title small { display: block; font-weight: 400; color: var(--color-muted); font-size: 0.7rem; }
+
+/* ナビも罫線ではなく、選択中タブを塗りのピルで示す。 */
+.app-nav { display: flex; flex-wrap: wrap; gap: 0.35rem; padding: 0.6rem 1rem; background: var(--color-bg); }
+.app-nav button {
+  background: none; border: none; border-radius: 999px;
+  padding: 0.5rem 0.9rem; font-size: 0.9rem; color: var(--color-fg);
+}
+.app-nav button[aria-current="page"] { background: var(--color-primary); color: var(--color-primary-fg); font-weight: 700; }
+.app-nav button:hover:not([aria-current="page"]) { background: var(--color-surface); }
+
+main { flex: 1; padding: 1rem; max-width: 880px; width: 100%; margin: 0 auto; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  background: var(--color-primary); color: var(--color-primary-fg);
+  border: none; border-radius: 8px; padding: 0.65rem 1.1rem; font-size: 1rem;
+  min-height: 44px;
+}
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-secondary { background: var(--color-surface-2); color: var(--color-fg); border: none; box-shadow: var(--shadow-field); }
+.btn-danger { background: var(--color-danger-bg); color: var(--color-danger); border: none; }
+.btn-block { width: 100%; justify-content: center; }
+.btn-sm { min-height: 36px; padding: 0.4rem 0.7rem; font-size: 0.85rem; }
+
+.card {
+  border: none; border-radius: 14px; padding: 1rem;
+  margin-bottom: 1rem; background: var(--color-surface); box-shadow: var(--shadow-card);
+}
+
+.status-banner { padding: 0.75rem 1rem; border-radius: 10px; margin-bottom: 1rem; border: none; display: flex; gap: 0.5rem; align-items: flex-start; line-height: 1.6; }
+.status-banner.warning { background: var(--color-warning-bg); color: var(--color-warning-fg); }
+.status-banner.error { background: var(--color-danger-bg); color: var(--color-danger); }
+.status-banner.success { background: var(--color-success-bg); color: var(--color-success-fg); }
+.status-banner .icon {
+  font-weight: 700; flex-shrink: 0; line-height: 1.6;
+  display: inline-flex; align-items: center; height: 1.6em;
+}
+.status-banner-text { flex: 1; }
+.status-banner-dismiss {
+  background: none; border: none; font-size: 1.2rem; line-height: 1; cursor: pointer;
+  color: inherit; padding: 0 0.2rem; flex-shrink: 0; min-width: 32px; min-height: 32px;
+}
+
+.field { display: flex; flex-direction: column; gap: 0.25rem; margin-bottom: 0.9rem; }
+.field label { font-weight: 600; font-size: 0.9rem; }
+.field input, .field select {
+  border: none; border-radius: 8px; padding: 0.6rem;
+  background: var(--color-surface-2); color: var(--color-fg); min-height: 44px;
+  box-shadow: var(--shadow-field);
+}
+.checkbox-label {
+  display: flex; align-items: center; gap: 0.4rem; font-weight: 400;
+  font-size: 0.85rem; color: var(--color-muted); min-height: 32px;
+}
+.checkbox-label input[type="checkbox"] { min-height: auto; width: 18px; height: 18px; }
+
+table { width: 100%; border-collapse: collapse; }
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+th, td { text-align: left; padding: 0.55rem 0.4rem; font-size: 0.92rem; white-space: nowrap; border-bottom: 1px solid var(--color-border); }
+td .td-sub { color: var(--color-muted); font-size: 0.78rem; margin-top: 0.1rem; }
+td.fare-cabin-cell { font-size: 0.8rem; }
+.inline-muted { color: var(--color-muted); font-size: 0.82em; font-weight: 400; }
+tr.special-row td {
+  text-align: center; color: var(--color-muted);
+  font-size: 0.75rem; white-space: normal; padding: 0.15rem 0.4rem; line-height: 1.3;
+}
+tr.special-row.date-row td { text-align: left; font-weight: 700; background: var(--color-border); color: var(--color-fg); border-radius: 6px; }
+tr.special-row.overnight-row td,
+tr.special-row.transfer-row td,
+tr.special-row.connection-row td { text-align: left; background: none; padding-left: 1.3rem; }
+/* 日をまたぐ区切りなので、下に通常セルと同じだけ余白を空ける。 */
+tr.special-row.overnight-row td { color: var(--color-warning-fg); padding-bottom: 0.55rem; }
+tr.special-row.transfer-row td { color: var(--color-danger); }
+tr.tier-row.current td { font-weight: 700; color: var(--color-primary); }
+
+.table-action-btn { min-height: 32px; min-width: 32px; padding: 0.2rem 0.5rem; }
+th { color: var(--color-muted); font-weight: 600; }
+
+.flight-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.6rem; }
+.flight-option {
+  border: none; border-radius: 12px; padding: 0.75rem;
+  display: flex; flex-direction: column; gap: 0.3rem; text-align: left;
+  background: var(--color-surface-2); box-shadow: var(--shadow-field);
+  width: 100%; min-height: 44px;
+}
+.flight-option:hover { background: var(--color-surface); }
+.badge { display: inline-block; padding: 0.15rem 0.6rem; border-radius: 999px; font-size: 0.75rem; border: none; }
+.badge.overnight { background: var(--color-warning-bg); color: var(--color-warning-fg); }
+.badge.transfer { background: var(--color-danger-bg); color: var(--color-danger); }
+
+.pp-total { font-size: 1.3rem; font-weight: 800; }
+
+.meta { color: var(--color-muted); font-size: 0.85rem; margin: 0.2rem 0; }
+
+.plan-card { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.actions { display: flex; gap: 0.4rem; flex-wrap: wrap; justify-content: flex-end; }
+.title-row { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.title-row h2 { margin: 0; }
+
+.progress-bar { height: 8px; border-radius: 4px; background: var(--color-surface-2); overflow: hidden; }
+.progress-bar > div { height: 100%; background: var(--color-primary); transition: width 0.15s; }
+
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+
+/* タブ切り替え（空港選択・当日/翌日の便切り替えで共用）。罫線ではなく塗りのピルで選択中を示す。 */
+.tab-row { display: flex; gap: 0.4rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
+.tab-button {
+  background: var(--color-surface); border: none; border-radius: 999px;
+  padding: 0.55rem 0.9rem; font-size: 0.95rem; font-weight: 600; color: var(--color-muted);
+  min-height: 44px;
+}
+.tab-button.active { color: var(--color-primary-fg); background: var(--color-primary); }
+
+/* セグメントスイッチ（運賃種別・座席クラスの切り替えなど、設定値の選択に使う） */
+.segment-group-label { font-size: 0.8rem; color: var(--color-muted); margin: 0 0 0.3rem; }
+/* 運賃種別と座席クラスの2つのセグメント行を横並びにする。幅が狭い画面では折り返し、
+   折り返した際に窮屈にならないよう縦方向のマージンを付ける。 */
+.segment-pair { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.6rem; margin-bottom: 0.6rem; }
+.segment-row {
+  display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: 9px;
+  background: var(--color-surface-2);
+}
+.segment-button {
+  background: none; border: none; border-radius: 6px; padding: 0.4rem 0.6rem;
+  font-size: 0.78rem; font-weight: 600; color: var(--color-fg); min-height: 34px;
+}
+.segment-button.active { background: var(--color-primary); color: var(--color-primary-fg); }
+
+/* 空港選択UI */
+.airport-picker { display: flex; flex-direction: column; gap: 0.5rem; }
+.airport-picker-tabs { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.airport-picker-list { max-height: 340px; overflow-y: auto; border-radius: 10px; padding: 0.6rem; background: var(--color-surface-2); }
+.airport-region-heading { margin: 0.8rem 0 0.4rem; font-size: 0.85rem; color: var(--color-muted); }
+.airport-region-heading:first-child { margin-top: 0; }
+.airport-chip-grid { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.airport-chip {
+  border: none; border-radius: 999px; background: var(--color-surface);
+  padding: 0.5rem 0.9rem; font-size: 0.9rem; min-height: 44px; color: var(--color-fg);
+}
+.airport-chip.selected { background: var(--color-primary); color: var(--color-primary-fg); font-weight: 700; }
+.airport-picker-selected { font-size: 0.9rem; font-weight: 600; margin: 0; }
+
+/* 便候補リスト（当日/翌日切り替え後の1件分） */
+.flight-option-row { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; }
+.flight-option-route { font-weight: 700; text-align: left; }
+.flight-option-times { font-weight: 700; text-align: right; white-space: nowrap; }
+.flight-option-sub { color: var(--color-muted); font-size: 0.82rem; margin-top: 0.15rem; }
+
+@media (max-width: 480px) {
+  main { padding: 0.75rem; }
+  .app-header { padding: 0.7rem 0.75rem; }
+}

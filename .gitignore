@@ -1,0 +1,16 @@
+# Dropbox App Key等、環境ごとの設定。
+# .env（ローカル）から scripts/gen-dropbox-config.mjs で生成されるファイルのため、
+# どちらもコミットしない（本番ではGitHub ActionsのVariablesから生成する）。
+.env
+js/dropbox-config.js
+
+# 開発用テストツールの依存関係（任意実行のjsdomスモークテスト用）
+tests/browser-sim/node_modules/
+tests/browser-sim/package-lock.json
+
+# 検証用に一時取得したファイル（再配布を避けるためコミットしない）
+*.pdf
+
+# OS/エディタ
+.DS_Store
+*.log

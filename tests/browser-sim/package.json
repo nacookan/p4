@@ -1,0 +1,8 @@
+{
+  "name": "p4-browser-sim-devtools",
+  "private": true,
+  "description": "アプリ本体には不要。ビュー(js/views/*)をjsdom上で描画してみる任意の開発用スモークテストのための依存置き場。",
+  "devDependencies": {
+    "jsdom": "^30.0.1"
+  }
+}

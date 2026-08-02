@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dropbox連携 | P⁴ – PP Power Plan</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app" class="callback-shell">
+  <p>Dropboxとの連携を確認しています…</p>
+</div>
+<script type="module">
+  import { handleRedirectCallback } from './js/dropbox/oauth.js';
+
+  const container = document.getElementById('app');
+
+  handleRedirectCallback().then((result) => {
+    if (result.ok) {
+      window.location.replace('./index.html');
+      return;
+    }
+    container.textContent = '';
+    const p1 = document.createElement('p');
+    p1.textContent = 'Dropboxとの連携に失敗しました。';
+    const p2 = document.createElement('p');
+    p2.textContent = result.message;
+    const a = document.createElement('a');
+    a.href = './index.html';
+    a.textContent = 'トップに戻る';
+    container.append(p1, p2, a);
+  });
+</script>
+</body>
+</html>
