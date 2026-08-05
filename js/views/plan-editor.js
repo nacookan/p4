@@ -114,6 +114,10 @@ export function renderPlanEditor({ mode, planId }) {
               : `${idx + 1}区間目以降を旅程から削除しますか？`;
           if (confirm(message)) {
             editorState.legs = editorState.legs.slice(0, idx);
+            // 全区間を削除したときは、直前の区間の到着地・到着日時を指したままの
+            // pendingReferenceも一緒に捨てないと、出発条件フォームに戻らず
+            // 最後に見ていた候補一覧（最初の便の到着地・日付のまま）が残ってしまう。
+            if (idx === 0) editorState.pendingReference = null;
             renderBody();
           }
         },

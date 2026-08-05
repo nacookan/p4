@@ -12,6 +12,7 @@ const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'http:
 globalThis.window = dom.window;
 globalThis.document = dom.window.document;
 globalThis.HTMLElement = dom.window.HTMLElement;
+globalThis.confirm = () => true; // 削除等の確認ダイアログは常に「OK」扱いにする
 
 let pass = 0, fail = 0;
 function test(name, fn) {
@@ -426,6 +427,35 @@ test('plan-editor: 出発フォーム送信→候補選択→区間追加→保�
   assert.ok(!node.textContent.includes('金額/単価'), 'プラン編集画面の旅程テーブルに金額/単価列は無いはず');
   assert.ok(!node.textContent.includes('金額を保存'), '金額の保存ボタンはこの時点では表示されないはず');
   assert.ok(node.textContent.includes('このプランを保存'), '保存ボタンが表示されるはず');
+  document.body.removeChild(node);
+});
+
+test('plan-editor: 1区間目から削除して旅程を空にすると、出発条件フォームに戻る（前の到着地に残らない）', () => {
+  const node = renderPlanEditor({ mode: 'new' });
+  document.body.appendChild(node);
+
+  const dateInput = node.querySelector('input[type="date"]');
+  const form = node.querySelector('form');
+  dateInput.value = '2026-05-19';
+  const airportChip = [...node.querySelectorAll('.airport-chip')].find((b) => b.textContent === '東京（羽田）');
+  airportChip.dispatchEvent(new dom.window.Event('click', { bubbles: true }));
+  form.dispatchEvent(new dom.window.Event('submit', { bubbles: true, cancelable: true }));
+
+  const candidateBtn = node.querySelector('.flight-option');
+  assert.ok(candidateBtn, '候補便が見つかりません');
+  candidateBtn.dispatchEvent(new dom.window.Event('click', { bubbles: true }));
+  assert.ok(node.textContent.includes('このプランを保存'), '区間追加後、保存ボタンが表示されるはず');
+
+  const deleteBtn = node.querySelector('.table-action-btn');
+  assert.ok(deleteBtn, '削除ボタンが見つかりません');
+  deleteBtn.dispatchEvent(new dom.window.Event('click', { bubbles: true }));
+
+  assert.ok(
+    node.textContent.includes('出発条件を指定'),
+    '1区間目から削除したら出発条件フォームに戻るはず（実際に見つかったバグの再発防止）'
+  );
+  assert.ok(!node.textContent.includes('次の便を選択'), '前の到着地を引きずった候補一覧が残っていないはず');
+
   document.body.removeChild(node);
 });
 
