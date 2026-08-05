@@ -425,5 +425,53 @@ test('plan-editor: 出発フォーム送信→候補選択→区間追加→保�
   document.body.removeChild(node);
 });
 
+test('plan-editor: 候補一覧を行き先で絞り込めるドロップダウンが出る', () => {
+  const original = s.timetable;
+  const filterTimetable = {
+    schemaVersion: 1,
+    source: { fileName: 'test.pdf', sha256: 'filter123', importedAt: new Date().toISOString(), fileSizeBytes: 100 },
+    validPeriod: { from: '2026-05-19', to: '2026-05-25' },
+    publishedOn: '2026-05-01',
+    airports: ['東京（羽田）', '大阪（伊丹）', '那覇'],
+    routes: [
+      {
+        origin: '東京（羽田）', dest: '大阪（伊丹）',
+        flights: [{ flightNo: 'NH1001', carrier: 'ANA', dep: '07:00', arr: '08:05', operating: { mode: 'all', dates: [] } }],
+      },
+      {
+        origin: '東京（羽田）', dest: '那覇',
+        flights: [{ flightNo: 'NH1002', carrier: 'ANA', dep: '09:00', arr: '11:30', operating: { mode: 'all', dates: [] } }],
+      },
+    ],
+  };
+  s.timetable = { doc: filterTimetable, rev: 'rev-filter' };
+  try {
+    const node = renderPlanEditor({ mode: 'new' });
+    document.body.appendChild(node);
+    const dateInput = node.querySelector('input[type="date"]');
+    const form = node.querySelector('form');
+    dateInput.value = '2026-05-19';
+    const airportChip = [...node.querySelectorAll('.airport-chip')].find((b) => b.textContent === '東京（羽田）');
+    airportChip.dispatchEvent(new dom.window.Event('click', { bubbles: true }));
+    form.dispatchEvent(new dom.window.Event('submit', { bubbles: true, cancelable: true }));
+
+    assert.equal(node.querySelectorAll('.flight-option').length, 2, '絞り込み前は2件（伊丹行き・那覇行き）の候補が出るはず');
+    const select = node.querySelector('select');
+    assert.ok(select, '行き先の絞り込みドロップダウンが見つかりません');
+    const optionLabels = [...select.querySelectorAll('option')].map((o) => o.textContent).sort();
+    assert.deepEqual(optionLabels, ['すべて', '大阪（伊丹）', '那覇'].sort(), '選択肢は候補一覧に出ている行き先＋「すべて」のはず');
+
+    select.value = '那覇';
+    select.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+    const filtered = node.querySelectorAll('.flight-option');
+    assert.equal(filtered.length, 1, '「那覇」で絞り込むと1件になるはず');
+    assert.ok(filtered[0].textContent.includes('NH1002'));
+
+    document.body.removeChild(node);
+  } finally {
+    s.timetable = original;
+  }
+});
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail > 0 ? 1 : 0);

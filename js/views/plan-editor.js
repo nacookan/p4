@@ -224,8 +224,10 @@ export function renderPlanEditor({ mode, planId }) {
     let fareClassId = DEFAULT_FARE_CLASS_ID;
     let cabinClassId = DEFAULT_CABIN_CLASS_ID;
     let activeDay = sameDay.length > 0 ? 0 : 1;
+    let destFilter = '';
     const switchArea = el('div', {});
     const tabRow = el('div', { className: 'tab-row', attrs: { role: 'tablist', 'aria-label': '搭乗日' } });
+    const destFilterArea = el('div', {});
     const listArea = el('div', {});
 
     function renderSwitches() {
@@ -235,6 +237,25 @@ export function renderPlanEditor({ mode, planId }) {
         renderSegmentRow('座席クラス', CABIN_CLASSES, cabinClassId, (id) => { cabinClassId = id; renderSwitches(); renderList(); }),
       ]);
       switchArea.append(el('p', { className: 'segment-group-label', text: '運賃/座席' }), pair);
+    }
+
+    // 行き先の絞り込み用ドロップダウン（当日/翌日どちらのタブでも同じ選択肢にするため、
+    // 両日の候補をまとめた行き先の集合から作る。行き先が1つしかなければ出さない）。
+    function renderDestFilter() {
+      clear(destFilterArea);
+      const destinations = [...new Set(candidates.map((c) => c.route.dest))].sort();
+      if (destinations.length <= 1) return;
+      const select = el('select', {});
+      select.appendChild(el('option', { text: 'すべて', attrs: { value: '' } }));
+      for (const d of destinations) {
+        select.appendChild(el('option', { text: d, attrs: { value: d } }));
+      }
+      select.value = destFilter;
+      select.addEventListener('change', () => {
+        destFilter = select.value;
+        renderList();
+      });
+      destFilterArea.appendChild(el('div', { className: 'field' }, [el('label', { text: '行き先で絞り込み' }), select]));
     }
 
     function renderTabs() {
@@ -256,7 +277,7 @@ export function renderPlanEditor({ mode, planId }) {
 
     function renderList() {
       clear(listArea);
-      const items = activeDay === 0 ? sameDay : nextDayList;
+      const items = (activeDay === 0 ? sameDay : nextDayList).filter((c) => !destFilter || c.route.dest === destFilter);
       if (items.length === 0) {
         listArea.appendChild(el('p', { text: 'この日に選択可能な便はありません。' }));
         return;
@@ -291,8 +312,9 @@ export function renderPlanEditor({ mode, planId }) {
 
     renderSwitches();
     renderTabs();
+    renderDestFilter();
     renderList();
-    wrap.append(switchArea, tabRow, listArea);
+    wrap.append(switchArea, tabRow, destFilterArea, listArea);
     return wrap;
   }
 
