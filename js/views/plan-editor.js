@@ -115,9 +115,11 @@ export function renderPlanEditor({ mode, planId }) {
           if (confirm(message)) {
             editorState.legs = editorState.legs.slice(0, idx);
             // 全区間を削除したときは、直前の区間の到着地・到着日時を指したままの
-            // pendingReferenceも一緒に捨てないと、出発条件フォームに戻らず
-            // 最後に見ていた候補一覧（最初の便の到着地・日付のまま）が残ってしまう。
-            if (idx === 0) editorState.pendingReference = null;
+            // pendingReferenceを、最初に指定した出発条件（initialReference）に
+            // 戻す。出発条件フォームからやり直させるのではなく、同じ出発条件のまま
+            // 最初の便の候補一覧に戻す（edit時など初期条件が無ければ空になり、
+            // 結果として出発条件フォームに戻る）。
+            if (idx === 0) editorState.pendingReference = editorState.initialReference || null;
             renderBody();
           }
         },
@@ -172,7 +174,11 @@ export function renderPlanEditor({ mode, planId }) {
         errorArea.appendChild(el('div', { className: 'status-banner error', text: '出発空港を選択してください。' }));
         return;
       }
-      editorState.pendingReference = { airports: [airport], date, time: '00:00', prevLeg: null };
+      const reference = { airports: [airport], date, time: '00:00', prevLeg: null };
+      editorState.pendingReference = reference;
+      // 全区間を削除してやり直すときに使うため、最初に指定した出発条件を別に控えておく
+      // （pendingReferenceはこのあと区間を選ぶたびに直前区間の到着地・到着日時で上書きされる）。
+      editorState.initialReference = reference;
       renderBody();
     });
 

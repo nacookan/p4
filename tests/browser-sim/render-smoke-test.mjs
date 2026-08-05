@@ -430,7 +430,7 @@ test('plan-editor: 出発フォーム送信→候補選択→区間追加→保�
   document.body.removeChild(node);
 });
 
-test('plan-editor: 1区間目から削除して旅程を空にすると、出発条件フォームに戻る（前の到着地に残らない）', () => {
+test('plan-editor: 1区間目から削除して旅程を空にすると、出発条件フォームではなく最初に指定した条件のまま候補一覧に戻る', () => {
   const node = renderPlanEditor({ mode: 'new' });
   document.body.appendChild(node);
 
@@ -451,10 +451,14 @@ test('plan-editor: 1区間目から削除して旅程を空にすると、出発
   deleteBtn.dispatchEvent(new dom.window.Event('click', { bubbles: true }));
 
   assert.ok(
-    node.textContent.includes('出発条件を指定'),
-    '1区間目から削除したら出発条件フォームに戻るはず（実際に見つかったバグの再発防止）'
+    !node.textContent.includes('出発条件を指定'),
+    '1区間目から削除しても出発日・出発空港を入力し直すフォームには戻らないはず'
   );
-  assert.ok(!node.textContent.includes('次の便を選択'), '前の到着地を引きずった候補一覧が残っていないはず');
+  assert.ok(
+    node.textContent.includes('次の便を選択') && node.textContent.includes('東京（羽田） 発'),
+    '最初に指定した出発条件（東京（羽田）・2026-05-19）のまま、最初の便の候補一覧に戻るはず（実際に見つかったバグの再発防止）'
+  );
+  assert.ok(node.querySelector('.flight-option'), '候補便が再度表示されるはず');
 
   document.body.removeChild(node);
 });
