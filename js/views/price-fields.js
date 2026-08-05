@@ -34,7 +34,7 @@ export function renderPriceFields({ legs, initialPrices, initialMerged }) {
 
     const fieldChildren = [
       el('label', {
-        text: `${formatDateJa(leg.boardingDate)} ${leg.flightNo} ${leg.origin} → ${leg.dest}（円）`,
+        text: `${formatDateJa(leg.boardingDate)} ${leg.flightNo} ${leg.dep} ${leg.origin} → ${leg.arr} ${leg.dest}（円）`,
       }),
       input,
     ];

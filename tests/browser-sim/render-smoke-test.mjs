@@ -337,6 +337,10 @@ test('plan-editor (mode:price) 金額のみ編集して保存できる', () => {
   const input = node.querySelector('input[type="number"]');
   assert.ok(input, '金額入力欄が見つかりません');
   assert.equal(input.value, '12960', '既存の金額メモが初期値として入っているはず');
+  assert.ok(
+    node.querySelector('label').textContent.includes('07:00') && node.querySelector('label').textContent.includes('08:05'),
+    '金額入力欄のラベルに出発/到着時刻(07:00/08:05)が表示されるはず'
+  );
   input.value = '9800';
   input.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
   const saveBtn = [...node.querySelectorAll('button')].find((b) => b.textContent === '金額を保存');
