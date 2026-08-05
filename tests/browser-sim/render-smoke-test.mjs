@@ -473,5 +473,53 @@ test('plan-editor: 候補一覧を行き先で絞り込めるドロップダウ�
   }
 });
 
+test('plan-editor: 2便目以降・同じ日の候補には「到着からX後」の待ち時間が先頭に付く', () => {
+  const original = s.timetable;
+  const connectTimetable = {
+    schemaVersion: 1,
+    source: { fileName: 'test.pdf', sha256: 'connect123', importedAt: new Date().toISOString(), fileSizeBytes: 100 },
+    validPeriod: { from: '2026-05-19', to: '2026-05-25' },
+    publishedOn: '2026-05-01',
+    airports: ['東京（羽田）', '大阪（伊丹）', '福岡'],
+    routes: [
+      {
+        origin: '東京（羽田）', dest: '大阪（伊丹）',
+        flights: [{ flightNo: 'NH2001', carrier: 'ANA', dep: '07:00', arr: '08:05', operating: { mode: 'all', dates: [] } }],
+      },
+      {
+        origin: '大阪（伊丹）', dest: '福岡',
+        flights: [{ flightNo: 'NH2002', carrier: 'ANA', dep: '09:35', arr: '10:35', operating: { mode: 'all', dates: [] } }],
+      },
+    ],
+  };
+  s.timetable = { doc: connectTimetable, rev: 'rev-connect' };
+  try {
+    const node = renderPlanEditor({ mode: 'new' });
+    document.body.appendChild(node);
+    const dateInput = node.querySelector('input[type="date"]');
+    const form = node.querySelector('form');
+    dateInput.value = '2026-05-19';
+    const airportChip = [...node.querySelectorAll('.airport-chip')].find((b) => b.textContent === '東京（羽田）');
+    airportChip.dispatchEvent(new dom.window.Event('click', { bubbles: true }));
+    form.dispatchEvent(new dom.window.Event('submit', { bubbles: true, cancelable: true }));
+
+    const firstLegOption = node.querySelector('.flight-option');
+    assert.ok(firstLegOption, '1便目の候補が見つかりません');
+    assert.ok(!firstLegOption.textContent.includes('到着から'), '1便目には前区間が無いので「到着から」の表記は出ないはず');
+    firstLegOption.dispatchEvent(new dom.window.Event('click', { bubbles: true }));
+
+    const secondLegOption = node.querySelector('.flight-option');
+    assert.ok(secondLegOption, '2便目の候補が見つかりません');
+    assert.ok(
+      secondLegOption.textContent.includes('到着から 1h30m 後 ・ NH2002'),
+      '08:05到着→09:35出発の間隔1h30mが候補の先頭に「到着からX後」の形式で表示されるはず'
+    );
+
+    document.body.removeChild(node);
+  } finally {
+    s.timetable = original;
+  }
+});
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail > 0 ? 1 : 0);

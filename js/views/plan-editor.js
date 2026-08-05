@@ -288,7 +288,13 @@ export function renderPlanEditor({ mode, planId }) {
           origin: c.route.origin, dest: c.route.dest, carrier: c.carrier, boardingDate: c.boardingDate, fareClassId, cabinClassId,
         });
         const transfer = ref.prevLeg ? airportTransferInfo(ref.prevLeg.dest, c.route.origin) : null;
-        const subText = `${c.flightNo} ・ ${c.carrier} ・ ${ppResult.pp !== null ? `${formatPP(ppResult.pp)} PP` : 'PP計算不能'}`;
+        // 2便目以降・同じ日の乗り継ぎのときだけ、前区間の到着からの間隔を先頭に添える。
+        let waitPrefix = '';
+        if (ref.prevLeg && c.boardingDate === ref.date) {
+          const waitText = formatDuration(minutesBetween(ref.date, ref.time, c.boardingDate, c.dep));
+          if (waitText) waitPrefix = `到着から ${waitText} 後 ・ `;
+        }
+        const subText = `${waitPrefix}${c.flightNo} ・ ${c.carrier} ・ ${ppResult.pp !== null ? `${formatPP(ppResult.pp)} PP` : 'PP計算不能'}`;
         const arrivalDate = resolveArrivalDate(c.boardingDate, c.dep, c.arr);
         const duration = formatDuration(minutesBetween(c.boardingDate, c.dep, arrivalDate, c.arr));
         const li = el('li', {}, [
