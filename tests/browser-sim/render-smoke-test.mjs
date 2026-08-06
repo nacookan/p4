@@ -502,8 +502,14 @@ await test('plan-editor: 候補一覧を行き先で絞り込めるドロップ�
     assert.equal(node.querySelectorAll('.flight-option').length, 2, '絞り込み前は2件（伊丹行き・那覇行き）の候補が出るはず');
     const select = node.querySelector('select');
     assert.ok(select, '行き先の絞り込みドロップダウンが見つかりません');
-    const optionLabels = [...select.querySelectorAll('option')].map((o) => o.textContent).sort();
-    assert.deepEqual(optionLabels, ['すべて', '大阪（伊丹）', '那覇'].sort(), '選択肢は候補一覧に出ている行き先＋「すべて」のはず');
+    const optionLabels = [...select.querySelectorAll('option')].map((o) => o.textContent);
+    // 大阪（伊丹）は近畿、那覇は地方区分表に無いため「その他」扱い（近畿の方が北）になる
+    // ので、北から順なら伊丹が先。
+    assert.deepEqual(
+      optionLabels,
+      ['すべて', '大阪（伊丹）', '那覇'],
+      '選択肢は北から順に並ぶはず'
+    );
 
     select.value = '那覇';
     select.dispatchEvent(new dom.window.Event('change', { bubbles: true }));

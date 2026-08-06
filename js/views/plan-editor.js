@@ -15,6 +15,7 @@ import { renderPriceFields } from './price-fields.js';
 import { renderItineraryTable, formatDuration } from './itinerary-table.js';
 import { confirmDialog } from '../util/confirm-dialog.js';
 import { CABIN_CLASSES, FARE_CLASSES, DEFAULT_CABIN_CLASS_ID, DEFAULT_FARE_CLASS_ID } from '../data/pp-rules.js';
+import { groupAirportsByRegion } from '../data/airport-regions.js';
 
 export function renderPlanEditor({ mode, planId }) {
   if (mode === 'price') {
@@ -252,10 +253,12 @@ export function renderPlanEditor({ mode, planId }) {
 
     // 行き先の絞り込み用ドロップダウン（当日/翌日どちらのタブでも同じ選択肢にするため、
     // 両日の候補をまとめた行き先の集合から作る。行き先が1つしかなければ出さない）。
+    // 選択肢は北から南の順に並べる。
     function renderDestFilter() {
       clear(destFilterArea);
-      const destinations = [...new Set(candidates.map((c) => c.route.dest))].sort();
-      if (destinations.length <= 1) return;
+      const destinationSet = new Set(candidates.map((c) => c.route.dest));
+      if (destinationSet.size <= 1) return;
+      const destinations = groupAirportsByRegion([...destinationSet]).flatMap((g) => g.airports);
       const select = el('select', {});
       select.appendChild(el('option', { text: 'すべて', attrs: { value: '' } }));
       for (const d of destinations) {
