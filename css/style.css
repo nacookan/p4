@@ -221,8 +221,10 @@ th { color: var(--color-muted); font-weight: 600; }
 .airport-chip.selected { background: var(--color-primary); color: var(--color-primary-fg); font-weight: 700; }
 .airport-picker-selected { font-size: 0.9rem; font-weight: 600; margin: 0; }
 
-/* 便候補リスト（当日/翌日切り替え後の1件分） */
-.flight-option-row { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; }
+/* 便候補リスト（当日/翌日切り替え後の1件分）。
+   行き先や時刻の文字数によって折り返すタイミングがバラバラだと見づらいため、
+   flex-wrapの自然な折り返しには頼らず、固定の画面幅を境に一斉に縦積みにする。 */
+.flight-option-row { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; }
 .flight-option-route { font-weight: 700; text-align: left; }
 .flight-option-times { font-weight: 700; text-align: right; white-space: nowrap; }
 .flight-option-sub { color: var(--color-muted); font-size: 0.82rem; margin-top: 0.15rem; }
@@ -230,4 +232,8 @@ th { color: var(--color-muted); font-weight: 600; }
 @media (max-width: 480px) {
   main { padding: 0.75rem; }
   .app-header { padding: 0.7rem 0.75rem; }
+}
+
+@media (max-width: 560px) {
+  .flight-option-row { flex-direction: column; align-items: stretch; gap: 0.15rem; }
 }
