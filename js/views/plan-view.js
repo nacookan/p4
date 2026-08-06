@@ -2,6 +2,7 @@ import { el } from '../util/dom.js';
 import * as state from '../state.js';
 import { calculateItineraryPP, formatPP } from '../domain/pp-calculator.js';
 import { renderItineraryTable, formatYen, ppUnitPriceText } from './itinerary-table.js';
+import { confirmDialog } from '../util/confirm-dialog.js';
 
 // PP単価の評価基準（円/PPが小さいほど高評価）。
 const STAR_TIERS = [
@@ -93,7 +94,7 @@ export function renderPlanView({ planId }) {
           text: '削除',
           on: {
             click: async () => {
-              if (!confirm('このプランを削除しますか？この操作は取り消せません。')) return;
+              if (!(await confirmDialog('このプランを削除しますか？この操作は取り消せません。'))) return;
               const newDoc = { ...appData.doc, plans: appData.doc.plans.filter((p) => p.id !== plan.id) };
               const res = await state.saveAppData(newDoc);
               if (res.ok) window.location.hash = '#/plans';

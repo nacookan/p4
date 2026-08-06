@@ -17,7 +17,6 @@ globalThis.document = dom.window.document;
 globalThis.sessionStorage = dom.window.sessionStorage;
 globalThis.HTMLElement = dom.window.HTMLElement;
 globalThis.history = dom.window.history;
-globalThis.confirm = () => true; // プラン削除等の確認ダイアログは常に「OK」扱いにする
 
 // テスト用にApp Keyのプレースホルダーを埋める（実際のDropbox通信はfetchモックが差し替える）。
 const { DROPBOX_CONFIG } = await import('../../js/dropbox-config.js');
@@ -194,6 +193,18 @@ test('プラン一覧に保存済みの1件が表示され、削除ボタンが�
 
 const deleteBtn = [...appRoot.querySelectorAll('button')].find((b) => b.textContent === '削除');
 deleteBtn.click();
+await sleep(10);
+
+test('削除ボタンを押すと、window.confirm()の代わりにアプリ内の確認モーダルが出る', () => {
+  const confirmBox = document.querySelector('.confirm-box');
+  assert.ok(confirmBox, '確認モーダルが表示されていません');
+  assert.ok(confirmBox.textContent.includes('削除しますか'));
+});
+
+const confirmOkBtn = document.querySelector('.confirm-box .btn-danger');
+assert.ok(confirmOkBtn, '確認モーダルのOKボタンが見つかりません');
+confirmOkBtn.click();
+await sleep(10);
 
 test('削除ボタンを押すと、保存の完了(アップロード)を待たずに即座に画面から消える（見込み削除）', () => {
   // このモックのアップロードはpendingUploadResolve()を呼ぶまで保留されるため、

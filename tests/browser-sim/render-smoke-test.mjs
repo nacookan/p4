@@ -12,12 +12,12 @@ const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'http:
 globalThis.window = dom.window;
 globalThis.document = dom.window.document;
 globalThis.HTMLElement = dom.window.HTMLElement;
-globalThis.confirm = () => true; // 削除等の確認ダイアログは常に「OK」扱いにする
 
 let pass = 0, fail = 0;
-function test(name, fn) {
+// confirm()を使うテストのために非同期のテスト関数もサポートする（呼び出し側は必ずawaitすること）。
+async function test(name, fn) {
   try {
-    fn();
+    await fn();
     pass += 1;
     console.log(`ok - ${name}`);
   } catch (e) {
@@ -36,13 +36,13 @@ const { renderPlanView } = await import('../../js/views/plan-view.js');
 const { renderImport } = await import('../../js/views/import.js');
 const { renderSettings } = await import('../../js/views/settings.js');
 
-test('connect view renders without throwing', () => {
+await test('connect view renders without throwing', () => {
   const node = renderConnect();
   document.body.appendChild(node);
   assert.ok(document.body.textContent.includes('Dropbox連携でログイン'));
 });
 
-test('about view renders without throwing', () => {
+await test('about view renders without throwing', () => {
   const node = renderAbout();
   assert.ok(node.textContent.includes('航空会社が提供する公式サービスではありません'));
   assert.ok(node.textContent.includes('データの取り扱い'));
@@ -55,24 +55,24 @@ s.connectivity = 'online';
 s.appData = { doc: { schemaVersion: 1, settings: {}, plans: [] }, rev: 'rev-appdata-1' };
 s.timetable = null;
 
-test('plan-list view (プランなし) renders without throwing', () => {
+await test('plan-list view (プランなし) renders without throwing', () => {
   const node = renderPlanList();
   assert.ok(node.textContent.includes('新規プラン作成'));
   assert.ok(node.textContent.includes('保存されたプランはまだありません'));
 });
 
-test('import view renders without throwing', () => {
+await test('import view renders without throwing', () => {
   const node = renderImport();
   assert.ok(node.textContent.includes('PDFファイルを選択'));
 });
 
-test('settings view renders (includes timetable import) without throwing', () => {
+await test('settings view renders (includes timetable import) without throwing', () => {
   const node = renderSettings();
   assert.ok(node.textContent.includes('設定'));
   assert.ok(node.textContent.includes('PDFファイルを選択'));
 });
 
-test('plan-editor view (時刻表未取込) shows guidance instead of throwing', () => {
+await test('plan-editor view (時刻表未取込) shows guidance instead of throwing', () => {
   const node = renderPlanEditor({ mode: 'new' });
   assert.ok(node.textContent.includes('時刻表を取り込んで'));
 });
@@ -94,17 +94,17 @@ const fakeTimetable = {
 };
 s.timetable = { doc: fakeTimetable, rev: 'rev-timetable-1' };
 
-test('plan-editor view (時刻表あり) shows the initial form', () => {
+await test('plan-editor view (時刻表あり) shows the initial form', () => {
   const node = renderPlanEditor({ mode: 'new' });
   assert.ok(node.textContent.includes('出発条件を指定'));
 });
 
-test('plan-view (存在しないID) handles gracefully', () => {
+await test('plan-view (存在しないID) handles gracefully', () => {
   const node = renderPlanView({ planId: 'no-such-id' });
   assert.ok(node.textContent.includes('見つかりませんでした'));
 });
 
-test('plan-view (存在するプラン) renders PP details', () => {
+await test('plan-view (存在するプラン) renders PP details', () => {
   s.appData.doc.plans.push({
     id: 'plan-1',
     title: 'テストプラン',
@@ -134,7 +134,7 @@ test('plan-view (存在するプラン) renders PP details', () => {
   assert.ok(dateCell, '日付のcolspan行が見つかりません');
 });
 
-test('plan-view: 「上の便に合算」区間は自身の金額を持たず、合算元の単価計算にPPが加算される', () => {
+await test('plan-view: 「上の便に合算」区間は自身の金額を持たず、合算元の単価計算にPPが加算される', () => {
   s.appData.doc.plans.push({
     id: 'plan-2',
     title: '乗り継ぎテストプラン',
@@ -163,7 +163,7 @@ test('plan-view: 「上の便に合算」区間は自身の金額を持たず、
   assert.ok(node.textContent.includes('15.4円/PP'), '合算元の単価は自区間PPだけでなく合算区間PPも加えて計算されるはず');
 });
 
-test('plan-view: 飛行時間が薄字で表示され、直接乗り継ぎには「乗り継ぎ待ち」特殊行が出る', () => {
+await test('plan-view: 飛行時間が薄字で表示され、直接乗り継ぎには「乗り継ぎ待ち」特殊行が出る', () => {
   s.appData.doc.plans.push({
     id: 'plan-3',
     title: '乗り継ぎ待ち表示テスト',
@@ -193,7 +193,7 @@ test('plan-view: 飛行時間が薄字で表示され、直接乗り継ぎには
   );
 });
 
-test('plan-view: 空港間の移動には所要時間が付き、空港間の移動/宿泊があるときは乗り継ぎ待ち行が出ない', () => {
+await test('plan-view: 空港間の移動には所要時間が付き、空港間の移動/宿泊があるときは乗り継ぎ待ち行が出ない', () => {
   s.appData.doc.plans.push({
     id: 'plan-4',
     title: '空港間の移動テスト',
@@ -222,7 +222,7 @@ test('plan-view: 空港間の移動には所要時間が付き、空港間の移
   assert.equal(node.querySelectorAll('tr.connection-row').length, 0, '空港間の移動があるときは乗り継ぎ待ち行を出さないはず');
 });
 
-test('plan-view: 宿泊のみのときも乗り継ぎ待ち行は出ない', () => {
+await test('plan-view: 宿泊のみのときも乗り継ぎ待ち行は出ない', () => {
   s.appData.doc.plans.push({
     id: 'plan-5',
     title: '宿泊テスト',
@@ -245,7 +245,7 @@ test('plan-view: 宿泊のみのときも乗り継ぎ待ち行は出ない', () 
   assert.equal(node.querySelectorAll('tr.connection-row').length, 0, '宿泊があるときは乗り継ぎ待ち行を出さないはず');
 });
 
-test('plan-view: 空港間の移動を伴う宿泊は、宿泊行に両方の空港名が入り、空港間の移動行は出ない', () => {
+await test('plan-view: 空港間の移動を伴う宿泊は、宿泊行に両方の空港名が入り、空港間の移動行は出ない', () => {
   s.appData.doc.plans.push({
     id: 'plan-6',
     title: '空港間の移動を伴う宿泊テスト',
@@ -271,7 +271,7 @@ test('plan-view: 空港間の移動を伴う宿泊は、宿泊行に両方の空
   assert.ok(overnightRow.textContent.includes('宿泊（伊丹・関西）'), '空港間の移動を伴う宿泊は両方の空港名が入るはず');
 });
 
-test('plan-view: 1時間未満の待ち時間は「0h30m」のように0hを補って表記する', () => {
+await test('plan-view: 1時間未満の待ち時間は「0h30m」のように0hを補って表記する', () => {
   s.appData.doc.plans.push({
     id: 'plan-7',
     title: '短い待ち時間テスト',
@@ -298,12 +298,12 @@ test('plan-view: 1時間未満の待ち時間は「0h30m」のように0hを補�
   );
 });
 
-test('plan-view: 運賃/座席セルには専用クラスが付き、フォントサイズを小さくしている', () => {
+await test('plan-view: 運賃/座席セルには専用クラスが付き、フォントサイズを小さくしている', () => {
   const node = renderPlanView({ planId: 'plan-1' });
   assert.ok(node.querySelector('td.fare-cabin-cell'), '運賃/座席セルにfare-cabin-cellクラスが付くはず');
 });
 
-test('plan-view: PP単価評価とマイル→SKYコイン交換レート表が表示される', () => {
+await test('plan-view: PP単価評価とマイル→SKYコイン交換レート表が表示される', () => {
   // plan-1: 12,960円 / 648PP = 20.0円/PP → 「15円超」なので★1つ
   const node = renderPlanView({ planId: 'plan-1' });
   assert.ok(node.textContent.includes('PP単価評価'));
@@ -331,7 +331,7 @@ test('plan-view: PP単価評価とマイル→SKYコイン交換レート表が�
   assert.ok(row17.textContent.includes('11.8円/PP'));
 });
 
-test('plan-editor (mode:price) 金額のみ編集して保存できる', () => {
+await test('plan-editor (mode:price) 金額のみ編集して保存できる', () => {
   const node = renderPlanEditor({ mode: 'price', planId: 'plan-1' });
   document.body.appendChild(node);
   assert.ok(node.textContent.includes('金額の編集'));
@@ -349,7 +349,7 @@ test('plan-editor (mode:price) 金額のみ編集して保存できる', () => {
   document.body.removeChild(node);
 });
 
-test('plan-editor (mode:price) 2区間目に「上の便に合算されています」チェックボックスが出て、チェックすると金額欄が隠れる', () => {
+await test('plan-editor (mode:price) 2区間目に「上の便に合算されています」チェックボックスが出て、チェックすると金額欄が隠れる', () => {
   const node = renderPlanEditor({ mode: 'price', planId: 'plan-2' });
   document.body.appendChild(node);
   assert.ok(node.textContent.includes('上の便(NH0001)に合算されています'), '2区間目には直前の便名を含むチェックボックスラベルが出るはず');
@@ -364,7 +364,7 @@ test('plan-editor (mode:price) 2区間目に「上の便に合算されていま
   document.body.removeChild(node);
 });
 
-test('plan-editor: 出発フォーム送信→候補選択→区間追加→保存ボタン表示までの一連の操作', () => {
+await test('plan-editor: 出発フォーム送信→候補選択→区間追加→保存ボタン表示までの一連の操作', () => {
   // appData.plansを一度クリアしてクリーンな状態で試す
   s.appData.doc.plans = [];
   const node = renderPlanEditor({ mode: 'new' });
@@ -430,7 +430,7 @@ test('plan-editor: 出発フォーム送信→候補選択→区間追加→保�
   document.body.removeChild(node);
 });
 
-test('plan-editor: 1区間目から削除して旅程を空にすると、出発条件フォームではなく最初に指定した条件のまま候補一覧に戻る', () => {
+await test('plan-editor: 1区間目から削除して旅程を空にすると、出発条件フォームではなく最初に指定した条件のまま候補一覧に戻る', async () => {
   const node = renderPlanEditor({ mode: 'new' });
   document.body.appendChild(node);
 
@@ -450,6 +450,12 @@ test('plan-editor: 1区間目から削除して旅程を空にすると、出発
   assert.ok(deleteBtn, '削除ボタンが見つかりません');
   deleteBtn.dispatchEvent(new dom.window.Event('click', { bubbles: true }));
 
+  // window.confirm()の代わりに出るアプリ内モーダルのOKを押す。
+  const confirmOkBtn = document.querySelector('.confirm-box .btn-danger');
+  assert.ok(confirmOkBtn, '削除確認モーダルのOKボタンが見つかりません');
+  confirmOkBtn.dispatchEvent(new dom.window.Event('click', { bubbles: true }));
+  await new Promise((resolve) => setTimeout(resolve, 0));
+
   assert.ok(
     !node.textContent.includes('出発条件を指定'),
     '1区間目から削除しても出発日・出発空港を入力し直すフォームには戻らないはず'
@@ -463,7 +469,7 @@ test('plan-editor: 1区間目から削除して旅程を空にすると、出発
   document.body.removeChild(node);
 });
 
-test('plan-editor: 候補一覧を行き先で絞り込めるドロップダウンが出る', () => {
+await test('plan-editor: 候補一覧を行き先で絞り込めるドロップダウンが出る', () => {
   const original = s.timetable;
   const filterTimetable = {
     schemaVersion: 1,
@@ -511,7 +517,7 @@ test('plan-editor: 候補一覧を行き先で絞り込めるドロップダウ�
   }
 });
 
-test('plan-editor: 2便目以降・同じ日の候補には「到着からX後」の待ち時間が先頭に付く', () => {
+await test('plan-editor: 2便目以降・同じ日の候補には「到着からX後」の待ち時間が先頭に付く', () => {
   const original = s.timetable;
   const connectTimetable = {
     schemaVersion: 1,

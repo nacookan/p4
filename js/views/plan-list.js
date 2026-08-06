@@ -3,6 +3,7 @@ import * as state from '../state.js';
 import { calculateItineraryPP, formatPP } from '../domain/pp-calculator.js';
 import { formatDateJa } from '../util/time.js';
 import { abbreviateAirport } from '../util/airport-name.js';
+import { confirmDialog } from '../util/confirm-dialog.js';
 
 function airportPath(legs) {
   if (legs.length === 0) return '';
@@ -60,7 +61,7 @@ export function renderPlanList() {
           text: '削除',
           on: {
             click: async () => {
-              if (!confirm(`プラン「${plan.title || '(無題)'}」を削除しますか？この操作は取り消せません。`)) return;
+              if (!(await confirmDialog(`プラン「${plan.title || '(無題)'}」を削除しますか？この操作は取り消せません。`))) return;
               // 保存の完了を待たず、見込みで即座に画面から消す。保存に失敗した場合は
               // 上部のバナーでエラーを通知するのみとし、復元はリロード時の再読み込みに委ねる
               // （リロードすればDropbox上の実データ、つまり削除されていない状態に戻る）。

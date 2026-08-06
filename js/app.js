@@ -1,6 +1,7 @@
 import * as state from './state.js';
 import { el, clear } from './util/dom.js';
 import { isConfigured } from './dropbox/oauth.js';
+import { confirmDialog } from './util/confirm-dialog.js';
 
 import { renderConnect } from './views/connect.js';
 import { renderPlanList } from './views/plan-list.js';
@@ -53,7 +54,7 @@ function buildShellOnce() {
       attrs: { id: 'disconnect-btn', style: 'display:none' },
       on: {
         click: async () => {
-          if (confirm('ログアウトしますか？Dropbox上のデータは削除されません。')) {
+          if (await confirmDialog('ログアウトしますか？Dropbox上のデータは削除されません。')) {
             await state.disconnect();
           }
         },

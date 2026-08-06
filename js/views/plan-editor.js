@@ -13,6 +13,7 @@ import { formatDateShortJa, addDays, todayJST, minutesBetween } from '../util/ti
 import { renderAirportPicker } from './airport-picker.js';
 import { renderPriceFields } from './price-fields.js';
 import { renderItineraryTable, formatDuration } from './itinerary-table.js';
+import { confirmDialog } from '../util/confirm-dialog.js';
 import { CABIN_CLASSES, FARE_CLASSES, DEFAULT_CABIN_CLASS_ID, DEFAULT_FARE_CLASS_ID } from '../data/pp-rules.js';
 
 export function renderPlanEditor({ mode, planId }) {
@@ -107,12 +108,12 @@ export function renderPlanEditor({ mode, planId }) {
     const tableWrap = el('div', { className: 'table-scroll' }, [
       renderItineraryTable(editorState.legs, results, {
         showPrice: false,
-        onDeleteFrom: (idx) => {
+        onDeleteFrom: async (idx) => {
           const message =
             idx === 0
               ? '1区間目から旅程をやり直しますか？選択済みの区間はすべて削除されます。'
               : `${idx + 1}区間目以降を旅程から削除しますか？`;
-          if (confirm(message)) {
+          if (await confirmDialog(message)) {
             editorState.legs = editorState.legs.slice(0, idx);
             // 全区間を削除したときは、直前の区間の到着地・到着日時を指したままの
             // pendingReferenceを、最初に指定した出発条件（initialReference）に
