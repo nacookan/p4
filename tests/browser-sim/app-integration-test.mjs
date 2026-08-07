@@ -15,6 +15,7 @@ const dom = new JSDOM('<!doctype html><html><body><div id="app"></div></body></h
 globalThis.window = dom.window;
 globalThis.document = dom.window.document;
 globalThis.sessionStorage = dom.window.sessionStorage;
+globalThis.localStorage = dom.window.localStorage;
 globalThis.HTMLElement = dom.window.HTMLElement;
 globalThis.history = dom.window.history;
 
@@ -22,8 +23,9 @@ globalThis.history = dom.window.history;
 const { DROPBOX_CONFIG } = await import('../../js/dropbox-config.js');
 DROPBOX_CONFIG.appKey = 'test-app-key-for-integration-test';
 
-// oauth.isConnected()がtrueを返すよう、接続済みのトークンをセッションに仕込む。
-sessionStorage.setItem(
+// oauth.isConnected()がtrueを返すよう、接続済みのトークンをlocalStorageに仕込む
+// （アクセストークンはlocalStorageに保存される。ホーム画面追加時のログイン維持のため）。
+localStorage.setItem(
   'p4.dropbox.oauth.token',
   JSON.stringify({ accessToken: 'fake-access-token', refreshToken: 'fake-refresh-token', expiresAt: Date.now() + 3600_000 })
 );

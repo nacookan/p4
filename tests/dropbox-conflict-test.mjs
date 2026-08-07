@@ -3,7 +3,7 @@
 // DOMは使わないため、jsdom等の追加インストールは不要（node tests/dropbox-conflict-test.mjs で実行可能）。
 import assert from 'node:assert/strict';
 
-// --- 最小限のsessionStorageポリフィル（Node用） ---
+// --- 最小限のsessionStorage/localStorageポリフィル（Node用） ---
 class MemoryStorage {
   constructor() { this.map = new Map(); }
   getItem(k) { return this.map.has(k) ? this.map.get(k) : null; }
@@ -11,11 +11,13 @@ class MemoryStorage {
   removeItem(k) { this.map.delete(k); }
 }
 globalThis.sessionStorage = new MemoryStorage();
+globalThis.localStorage = new MemoryStorage();
 
 const { DROPBOX_CONFIG } = await import('../js/dropbox-config.js');
 DROPBOX_CONFIG.appKey = 'test-app-key';
 
-sessionStorage.setItem(
+// アクセストークンはlocalStorageに保存される（ホーム画面追加時のログイン維持のため）。
+localStorage.setItem(
   'p4.dropbox.oauth.token',
   JSON.stringify({ accessToken: 'fake-token', refreshToken: 'fake-refresh', expiresAt: Date.now() + 3600_000 })
 );
@@ -111,7 +113,7 @@ await test('認証期限切れ: 保存に失敗し、未接続状態に遷移す
   assert.equal(res.ok, false);
   assert.equal(state.getState().connectivity, 'unauthenticated');
   mode = 'normal';
-  sessionStorage.setItem('p4.dropbox.oauth.token', JSON.stringify({ accessToken: 'fake-token-2', refreshToken: 'fake-refresh', expiresAt: Date.now() + 3600_000 }));
+  localStorage.setItem('p4.dropbox.oauth.token', JSON.stringify({ accessToken: 'fake-token-2', refreshToken: 'fake-refresh', expiresAt: Date.now() + 3600_000 }));
   await state.init();
 });
 

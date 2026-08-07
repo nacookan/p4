@@ -1,13 +1,13 @@
 // Dropbox OAuth 2.0 Authorization Code Flow with PKCE（公開クライアント向け）。
 // 出典: https://developers.dropbox.com/oauth-guide （確認日: 2026-08-02）
 //
-// 設計判断（README参照）: アクセストークン・リフレッシュトークンは
-// sessionStorageにのみ保存する。localStorage/IndexedDBのような永続ストレージには
-// 保存しない。これによりブラウザタブ／セッションを閉じると再接続が必要になるが、
-// 要件が明示的に許可しているのは「OAuth処理に必要な一時情報」のSession Storageへの
-// 保存であり、より永続的な保存先を積極的に使う根拠がないため、保守的な側を選んだ。
-// Dropbox側はアプリの認可自体を記憶しているため、再接続はブラウザがDropboxに
-// ログイン済みであれば通常は数クリックで完了する。
+// 設計判断（README参照）: アクセストークン・リフレッシュトークンはlocalStorageに保存する
+// （以前はsessionStorageのみだったが、ホーム画面に追加してPWA的に使う場合、起動のたびに
+// 新しいセッション扱いになりログインが必要になってしまうため変更した）。このアプリの
+// Dropboxアクセスはこのアプリ専用のApp Folderのみに限定されたスコープ
+// （files.content.write/files.content.read）であり、アカウント全体へはアクセスできない。
+// PKCEの認可フロー中だけ使う一時情報（code verifier・state）は、認可の往復が終われば
+// 不要になるためsessionStorageのままにしている。
 import { DROPBOX_CONFIG } from '../dropbox-config.js';
 import { generateCodeVerifier, generateCodeChallenge, generateState } from './pkce.js';
 
@@ -19,7 +19,7 @@ const REVOKE_URL = 'https://api.dropboxapi.com/2/auth/token/revoke';
 const OAUTH_SCOPE = 'files.content.write files.content.read';
 
 const SESSION_KEY_PENDING = 'p4.dropbox.oauth.pending'; // {verifier, state}
-const SESSION_KEY_TOKEN = 'p4.dropbox.oauth.token'; // {accessToken, refreshToken, expiresAt}
+const TOKEN_STORAGE_KEY = 'p4.dropbox.oauth.token'; // {accessToken, refreshToken, expiresAt}
 
 export function computeRedirectUri() {
   return new URL('oauth-callback.html', document.baseURI).href;
@@ -30,22 +30,22 @@ export function isConfigured() {
 }
 
 function saveToken(token) {
-  sessionStorage.setItem(SESSION_KEY_TOKEN, JSON.stringify(token));
+  localStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify(token));
 }
 
 function loadToken() {
-  const raw = sessionStorage.getItem(SESSION_KEY_TOKEN);
+  const raw = localStorage.getItem(TOKEN_STORAGE_KEY);
   if (!raw) return null;
   try {
     return JSON.parse(raw);
   } catch {
-    sessionStorage.removeItem(SESSION_KEY_TOKEN);
+    localStorage.removeItem(TOKEN_STORAGE_KEY);
     return null;
   }
 }
 
 export function clearToken() {
-  sessionStorage.removeItem(SESSION_KEY_TOKEN);
+  localStorage.removeItem(TOKEN_STORAGE_KEY);
 }
 
 export function isConnected() {
