@@ -15,6 +15,33 @@
 <div id="app">
   <noscript>このアプリの利用にはJavaScriptが必要です。</noscript>
 </div>
+<script type="module">
+  // service workerを使わないため、ホーム画面に追加した状態（PWA的な使い方）で
+  // 起動したときに古いキャッシュがいつまでも読まれ続けることがある。
+  // 起動のたびに、このHTML自身をキャッシュを迂回して取得し直して埋め込みバージョンを
+  // 突き合わせ、古ければキャッシュを迂回するURLへ黙って読み直す。
+  // （app.js自体が古いキャッシュから実行されている可能性があるため、このチェックは
+  // app.jsではなくこのインライン<script>で、app.jsの読み込みより先に行う。
+  // また、別ファイルをキャッシュ経由でimportするとそのファイル自体が古いままになり
+  // 再読み込みが無限ループしかねないため、比較対象はこのHTML自身の埋め込み値のみを使う）。
+  const CURRENT_VERSION = '__APP_VERSION__'; // scripts/gen-version.mjsがデプロイ時に書き換える
+  // 書き換え後の値（gitの短縮SHA等）は "__" で始まることがないため、これでローカル開発時
+  // （プレースホルダーのまま）とデプロイ後を区別する。
+  if (!CURRENT_VERSION.startsWith('__')) {
+    try {
+      const res = await fetch('./index.html', { cache: 'no-store' });
+      if (res.ok) {
+        const text = await res.text();
+        const m = /CURRENT_VERSION = '([^']+)'/.exec(text);
+        if (m && m[1] !== CURRENT_VERSION) {
+          location.replace(`${location.pathname}?_r=${Date.now()}`);
+        }
+      }
+    } catch {
+      // 確認できない場合は今読み込んでいるバージョンのまま起動を続ける。
+    }
+  }
+</script>
 <script type="module" src="js/app.js"></script>
 </body>
 </html>

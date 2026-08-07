@@ -34,6 +34,10 @@ jobs:
           DROPBOX_APP_KEY: ${{ vars.DROPBOX_APP_KEY }}
         run: node scripts/gen-dropbox-config.mjs
 
+      # index.htmlにコミットSHAを埋め込む（ホーム画面追加時のキャッシュ更新チェック用）。
+      - name: Generate version marker in index.html
+        run: node scripts/gen-version.mjs
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5
         with:
